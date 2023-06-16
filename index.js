@@ -46,17 +46,17 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // await client.connect();
+    await client.connect();
 
-    const paymentCollection = client.db("educationEntertainment").collection("payments");
+    const paymentCollection = client.db("education-entertainment").collection("payments");
 
-    const usersCollection = client.db("educationEntertainment").collection("users");
+    const usersCollection = client.db("education-entertainment").collection("users");
     const teachersCollection = client
-      .db("educationEntertainment")
+      .db("education-entertainment")
       .collection("teachers");
-    const classAll = client.db("educationEntertainment").collection("classes");
+    const classAll = client.db("education-entertainment").collection("classes");
     const purchessClassCollection = client
-      .db("educationEntertainment")
+      .db("education-entertainment")
       .collection("purchessClass");
 
     app.post("/jwt", (req, res) => {
@@ -150,6 +150,7 @@ async function run() {
     app.get("/teachers", async (req, res) => {
       const result = await teachersCollection.find().toArray();
       res.send(result);
+      console.log(result);
     });
 
     app.post("/purchessClass", async (req, res) => {
