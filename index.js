@@ -33,9 +33,8 @@ const verifyJWT = (req, res, next) => {
   });
 };
 
-
-console.log(process.env.DB_PASS );
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.nwrzj29.mongodb.net/?retryWrites=true&w=majority`;
+
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
   serverApi: {
@@ -47,18 +46,18 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
 
-    // const paymentCollection = client.db("tuneTutors").collection("payments");
+    const paymentCollection = client.db("educationEntertainment").collection("payments");
 
     const userCollection = client.db("educationEntertainment").collection("users");
-    // const instructorsCollection = client
-    //   .db("tuneTutors")
-    //   .collection("instructors");
-    // const classesCollection = client.db("tuneTutors").collection("classes");
-    // const enrolledClassCollection = client
-    //   .db("tuneTutors")
-    //   .collection("enrolledClass");
+    const teachersCollection = client
+      .db("educationEntertainment")
+      .collection("teachers");
+    const classesCollection = client.db("educationEntertainment").collection("classes");
+    const purchessClassCollection = client
+      .db("educationEntertainment")
+      .collection("purchessClass");
 
     // app.post("/jwt", (req, res) => {
     //   const user = req.body;
@@ -68,29 +67,29 @@ async function run() {
     //   res.send({ token });
     // });
 
-    // // Admin Verify
-    // const verifyAdmin = async (req, res, next) => {
-    //   const email = req.decoded.email;
-    //   const query = { email: email };
-    //   const user = await userCollection.findOne(query);
-    //   if (user?.role !== "admin") {
-    //     return res
-    //       .status(403)
-    //       .send({ error: true, message: "Forbidden Access 4" });
-    //   }
-    //   next();
-    // };
+    // Admin Verify
+    const authinticateAdmin = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      if (user?.role !== "admin") {
+        return res
+          .status(403)
+          .send({ error: true, message: "Forbidden Access 4" });
+      }
+      next();
+    };
 
-    // app.post("/user", async (req, res) => {
-    //   const user = req.body;
-    //   const query = { email: user.email };
-    //   const existingUser = await userCollection.findOne(query);
-    //   if (existingUser) {
-    //     return res.send({ message: "User Already Exists" });
-    //   }
-    //   const result = await userCollection.insertOne(user);
-    //   res.send(result);
-    // });
+    app.post("/user", async (req, res) => {
+      const user = req.body;
+      const query = { email: user.email };
+      const userCreated = await userCollection.findOne(query);
+      if (userCreated) {
+        return res.send({ message: "User Already Exists" });
+      }
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
 
     // app.get("/users/admin/:email", verifyJWT, async (req, res) => {
     //   const email = req.params.email;
@@ -118,12 +117,12 @@ async function run() {
     //   res.send(result);
     // });
 
-    // app.patch("/users/instructors/:id", async (req, res) => {
+    // app.patch("/users/teachers/:id", async (req, res) => {
     //   const id = req.params.id;
     //   const filter = { _id: new ObjectId(id) };
     //   const updateDoc = {
     //     $set: {
-    //       role: "instructors",
+    //       role: "teachers",
     //     },
     //   };
 
@@ -138,7 +137,7 @@ async function run() {
     //   res.send(result);
     // });
 
-    // app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
+    // app.get("/users", verifyJWT, authinticateAdmin, async (req, res) => {
     //   const result = await userCollection.find().toArray();
     //   res.send(result);
     // });
@@ -148,24 +147,24 @@ async function run() {
     //   res.send(result);
     // });
 
-    // app.get("/instructors", async (req, res) => {
-    //   const result = await instructorsCollection.find().toArray();
+    // app.get("/teachers", async (req, res) => {
+    //   const result = await teachersCollection.find().toArray();
     //   res.send(result);
     // });
 
-    // app.post("/enrolledClass", async (req, res) => {
+    // app.post("/purchessClass", async (req, res) => {
     //   const item = req.body;
 
     //   const query = { userEmail: item.userEmail, enrolledId: item.enrolledId };
 
-    //   const existingEnrolled = await enrolledClassCollection.findOne(query);
+    //   const existingEnrolled = await purchessClassCollection.findOne(query);
 
     //   if (existingEnrolled) {
     //     return res.send({ message: "You have already enrolled this class" });
     //   }
 
     //   console.log(existingEnrolled, "existingEnrolled");
-    //   const result = await enrolledClassCollection.insertOne(item);
+    //   const result = await purchessClassCollection.insertOne(item);
     //   res.send(result);
     // });
 
@@ -185,7 +184,7 @@ async function run() {
     //   }
 
     //   const query = { userEmail: queryEmail };
-    //   const result = await enrolledClassCollection.find(query).toArray();
+    //   const result = await purchessClassCollection.find(query).toArray();
     //   console.log(result);
     //   res.send(result);
     // });
@@ -235,7 +234,7 @@ async function run() {
     // app.delete("/acquired/:id", async (req, res) => {
     //   const id = req.params.id;
     //   const query = { _id: new ObjectId(id) };
-    //   const result = await enrolledClassCollection.deleteOne(query);
+    //   const result = await purchessClassCollection.deleteOne(query);
     //   res.send(result);
     // });
 
@@ -265,7 +264,7 @@ async function run() {
     //   const query = {
     //     _id: { $in: payment.cartItems.map((id) => new ObjectId(id)) },
     //   };
-    //   const deleteResult = await enrolledClassCollection.deleteMany(query);
+    //   const deleteResult = await purchessClassCollection.deleteMany(query);
     //   res.send({ insertResult, deleteResult });
     // });
 
@@ -283,8 +282,8 @@ async function run() {
 run().catch(console.dir);
 
 app.get("/", (res, req) => {
-  req.send("TuneTutors Classroom is Running");
+  req.send("educationEntertainment Classroom is Running");
 });
 app.listen(port, () => {
-  console.log(`Hei Welcome to TuneTutors , please sit on ${port} `);
+  console.log(`Hei Welcome to educationEntertainment , please sit on ${port} `);
 });
