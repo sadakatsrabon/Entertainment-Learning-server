@@ -59,13 +59,13 @@ async function run() {
       .db("educationEntertainment")
       .collection("purchessClass");
 
-    // app.post("/jwt", (req, res) => {
-    //   const user = req.body;
-    //   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    //     expiresIn: "1h",
-    //   });
-    //   res.send({ token });
-    // });
+    app.post("/jwt", (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
 
     // Admin Verify
     const authinticateAdmin = async (req, res, next) => {
@@ -210,26 +210,26 @@ async function run() {
       res.send(result);
     });
 
-    // app.get("/profile", verifyJWT, async (req, res) => {
-    //   const queryEmail = req.query.email;
-    //   if (!queryEmail) {
-    //     res.send([]);
-    //   }
+    app.get("/profile", verifyJWT, async (req, res) => {
+      const queryEmail = req.query.email;
+      if (!queryEmail) {
+        res.send([]);
+      }
 
-    //   const exitsEmail = req.exits.email;
-    //   console.log(exitsEmail, queryEmail, "exits");
+      const exitsEmail = req.exits.email;
+      console.log(exitsEmail, queryEmail, "exits");
 
-    //   if (queryEmail !== exitsEmail) {
-    //     return res
-    //       .status(403)
-    //       .send({ error: true, message: "Forbidden Access 3" });
-    //   }
+      if (queryEmail !== exitsEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "Forbidden Access 3" });
+      }
 
-    //   const query = { email: queryEmail };
-    //   const result = await usersCollection.find(query).toArray();
-    //   console.log(result);
-    //   res.send(result);
-    // });
+      const query = { email: queryEmail };
+      const result = await usersCollection.find(query).toArray();
+      console.log(result);
+      res.send(result);
+    });
 
     // app.delete("/acquired/:id", async (req, res) => {
     //   const id = req.params.id;
@@ -238,37 +238,8 @@ async function run() {
     //   res.send(result);
     // });
 
-    // // Payment
-    // app.post("/create-payment-intent", verifyJWT, async (req, res) => {
-    //   const { price } = req.body;
-    //   console.log(price, "price");
-    //   const amount = Math.round(price * 100);
-    //   console.log(amount, "amount");
-    //   const paymentIntent = await stripe.paymentIntents.create({
-    //     amount,
-    //     currency: "usd",
-    //     automatic_payment_methods: {
-    //       enabled: true,
-    //     },
-    //   });
 
-    //   res.send({
-    //     clientSecret: paymentIntent.client_secret,
-    //   });
-    // });
-
-    // app.post("/payments", verifyJWT, async (req, res) => {
-    //   const payment = req.body;
-    //   const insertResult = await paymentCollection.insertOne(payment);
-
-    //   const query = {
-    //     _id: { $in: payment.cartItems.map((id) => new ObjectId(id)) },
-    //   };
-    //   const deleteResult = await purchessClassCollection.deleteMany(query);
-    //   res.send({ insertResult, deleteResult });
-    // });
-
-    // // Send a ping to confirm a successful connection
+    // Send a ping to confirm a successful connection
     console.log('hei ');
     await client.db("admin").command({ ping: 1 });
     console.log(
