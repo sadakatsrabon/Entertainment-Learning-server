@@ -22,13 +22,13 @@ const verifyJWT = (req, res, next) => {
 
   const token = authorization.split(" ")[1];
 
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, exits) => {
     if (err) {
       return res
         .status(401)
         .send({ error: true, message: "Unauthorized Access 2" });
     }
-    req.decoded = decoded;
+    req.exits = exits;
     next();
   });
 };
@@ -50,11 +50,11 @@ async function run() {
 
     const paymentCollection = client.db("educationEntertainment").collection("payments");
 
-    const userCollection = client.db("educationEntertainment").collection("users");
+    const usersCollection = client.db("educationEntertainment").collection("users");
     const teachersCollection = client
       .db("educationEntertainment")
       .collection("teachers");
-    const classesCollection = client.db("educationEntertainment").collection("classes");
+    const classAll = client.db("educationEntertainment").collection("classes");
     const purchessClassCollection = client
       .db("educationEntertainment")
       .collection("purchessClass");
@@ -69,9 +69,9 @@ async function run() {
 
     // Admin Verify
     const authinticateAdmin = async (req, res, next) => {
-      const email = req.decoded.email;
+      const email = req.exits.email;
       const query = { email: email };
-      const user = await userCollection.findOne(query);
+      const user = await usersCollection.findOne(query);
       if (user?.role !== "admin") {
         return res
           .status(403)
@@ -83,132 +83,132 @@ async function run() {
     app.post("/user", async (req, res) => {
       const user = req.body;
       const query = { email: user.email };
-      const userCreated = await userCollection.findOne(query);
+      const userCreated = await usersCollection.findOne(query);
       if (userCreated) {
         return res.send({ message: "User Already Exists" });
       }
-      const result = await userCollection.insertOne(user);
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     });
 
-    // app.get("/users/admin/:email", verifyJWT, async (req, res) => {
-    //   const email = req.params.email;
+    app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
 
-    //   if (req.decoded.email !== email) {
-    //     res.send({ admin: false });
-    //   }
+      if (req.exits.email !== email) {
+        res.send({ admin: false });
+      }
 
-    //   const query = { email: email };
-    //   const user = await userCollection.findOne(query);
-    //   const result = { admin: user?.role === "admin" };
-    //   res.send(result);
-    // });
+      const query = { email: email };
+      const user = await usersCollection.findOne(query);
+      const result = { admin: user?.role === "admin" };
+      res.send(result);
+    });
 
-    // app.patch("/users/admin/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const filter = { _id: new ObjectId(id) };
-    //   const updateDoc = {
-    //     $set: {
-    //       role: "admin",
-    //     },
-    //   };
+    app.patch("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const newDocument = {
+        $set: {
+          role: "admin",
+        },
+      };
 
-    //   const result = await userCollection.updateOne(filter, updateDoc);
-    //   res.send(result);
-    // });
+      const result = await usersCollection.updateOne(filter, newDocument);
+      res.send(result);
+    });
 
-    // app.patch("/users/teachers/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const filter = { _id: new ObjectId(id) };
-    //   const updateDoc = {
-    //     $set: {
-    //       role: "teachers",
-    //     },
-    //   };
+    app.patch("/users/teachers/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const newDocument = {
+        $set: {
+          role: "teachers",
+        },
+      };
 
-    //   const result = await userCollection.updateOne(filter, updateDoc);
-    //   res.send(result);
-    // });
+      const result = await usersCollection.updateOne(filter, newDocument);
+      res.send(result);
+    });
 
     // app.delete("/allusers/:id", async (req, res) => {
     //   const id = req.params.id;
     //   const query = { _id: new ObjectId(id) };
-    //   const result = await userCollection.deleteOne(query);
+    //   const result = await usersCollection.deleteOne(query);
     //   res.send(result);
     // });
 
-    // app.get("/users", verifyJWT, authinticateAdmin, async (req, res) => {
-    //   const result = await userCollection.find().toArray();
-    //   res.send(result);
-    // });
+    app.get("/users", verifyJWT, authinticateAdmin, async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
 
-    // app.get("/classes", async (req, res) => {
-    //   const result = await classesCollection.find().toArray();
-    //   res.send(result);
-    // });
+    app.get("/classes", async (req, res) => {
+      const result = await classAll.find().toArray();
+      res.send(result);
+    });
 
-    // app.get("/teachers", async (req, res) => {
-    //   const result = await teachersCollection.find().toArray();
-    //   res.send(result);
-    // });
+    app.get("/teachers", async (req, res) => {
+      const result = await teachersCollection.find().toArray();
+      res.send(result);
+    });
 
-    // app.post("/purchessClass", async (req, res) => {
-    //   const item = req.body;
+    app.post("/purchessClass", async (req, res) => {
+      const item = req.body;
 
-    //   const query = { userEmail: item.userEmail, enrolledId: item.enrolledId };
+      const query = { userEmail: item.userEmail, purchessId: item.purchessId };
 
-    //   const existingEnrolled = await purchessClassCollection.findOne(query);
+      const esistingPurchess = await purchessClassCollection.findOne(query);
 
-    //   if (existingEnrolled) {
-    //     return res.send({ message: "You have already enrolled this class" });
-    //   }
+      if (esistingPurchess) {
+        return res.send({ message: "You have already Purchess" });
+      }
 
-    //   console.log(existingEnrolled, "existingEnrolled");
-    //   const result = await purchessClassCollection.insertOne(item);
-    //   res.send(result);
-    // });
+      console.log(esistingPurchess, "existingPurchess");
+      const result = await purchessClassCollection.insertOne(item);
+      res.send(result);
+    });
 
-    // app.get("/acquired", verifyJWT, async (req, res) => {
-    //   const queryEmail = req.query.email;
-    //   if (!queryEmail) {
-    //     res.send([]);
-    //   }
+    app.get("/acquired", verifyJWT, async (req, res) => {
+      const queryEmail = req.query.email;
+      if (!queryEmail) {
+        res.send([]);
+      }
 
-    //   const decodedEmail = req.decoded.email;
-    //   console.log(decodedEmail, "decoded");
+      const exitsEmail = req.exits.email;
+      console.log(exitsEmail, "exits");
 
-    //   if (queryEmail !== decodedEmail) {
-    //     return res
-    //       .status(403)
-    //       .send({ error: true, message: "Forbidden Access 3" });
-    //   }
+      if (queryEmail !== exitsEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "Forbidden Access here" });
+      }
 
-    //   const query = { userEmail: queryEmail };
-    //   const result = await purchessClassCollection.find(query).toArray();
-    //   console.log(result);
-    //   res.send(result);
-    // });
+      const query = { userEmail: queryEmail };
+      const result = await purchessClassCollection.find(query).toArray();
+      console.log(result);
+      res.send(result);
+    });
 
-    // app.get("/enrolled", verifyJWT, async (req, res) => {
-    //   const queryEmail = req.query.email;
-    //   if (!queryEmail) {
-    //     res.send([]);
-    //   }
+    app.get("/purchess", verifyJWT, async (req, res) => {
+      const queryEmail = req.query.email;
+      if (!queryEmail) {
+        res.send([]);
+      }
 
-    //   const decodedEmail = req.decoded.email;
-    //   console.log(decodedEmail, "decoded");
+      const exitsEmail = req.exits.email;
+      console.log(exitsEmail, "exits");
 
-    //   if (queryEmail !== decodedEmail) {
-    //     return res
-    //       .status(403)
-    //       .send({ error: true, message: "Forbidden Access 3" });
-    //   }
+      if (queryEmail !== exitsEmail) {
+        return res
+          .status(403)
+          .send({ error: true, message: "Forbidden Access 3" });
+      }
 
-    //   const query = { email: queryEmail };
-    //   const result = await paymentCollection.find(query).toArray();
-    //   console.log(result);
-    //   res.send(result);
-    // });
+      const query = { email: queryEmail };
+      const result = await paymentCollection.find(query).toArray();
+      console.log(result);
+      res.send(result);
+    });
 
     // app.get("/profile", verifyJWT, async (req, res) => {
     //   const queryEmail = req.query.email;
@@ -216,17 +216,17 @@ async function run() {
     //     res.send([]);
     //   }
 
-    //   const decodedEmail = req.decoded.email;
-    //   console.log(decodedEmail, queryEmail, "decoded");
+    //   const exitsEmail = req.exits.email;
+    //   console.log(exitsEmail, queryEmail, "exits");
 
-    //   if (queryEmail !== decodedEmail) {
+    //   if (queryEmail !== exitsEmail) {
     //     return res
     //       .status(403)
     //       .send({ error: true, message: "Forbidden Access 3" });
     //   }
 
     //   const query = { email: queryEmail };
-    //   const result = await userCollection.find(query).toArray();
+    //   const result = await usersCollection.find(query).toArray();
     //   console.log(result);
     //   res.send(result);
     // });
